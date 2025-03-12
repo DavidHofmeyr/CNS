@@ -1,7 +1,7 @@
 if(system.file(package = "FNN") == "") install.packages("FNN")
 if(system.file(package = "Matrix") == "") install.packages("Matrix")
 
-### Function CNS implements the Custering by Non-parametric
+### Function CNS implements the Custering by Nonparametric
 ### Smoothing algorithm in Hofmeyr, D.P. (2025) currently on Arxiv
 ## Arguments:
 ## X = data matrix with observations row-wise
