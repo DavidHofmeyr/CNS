@@ -2,7 +2,7 @@ if(system.file(package = "FNN") == "") install.packages("FNN")
 if(system.file(package = "Matrix") == "") install.packages("Matrix")
 
 ### Function CNS implements the Custering by Nonparametric
-### Smoothing algorithm in Hofmeyr, D.P. (2025) currently on Arxiv
+### Smoothing algorithm in Hofmeyr, D.P. (2025), Arxiv:2503.09134
 ## Arguments:
 ## X = data matrix with observations row-wise
 ## kmax = maximum number of clusters
