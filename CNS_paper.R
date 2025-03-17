@@ -88,3 +88,22 @@ CNS <- function(X, kmax = 30, nn = c(5, 7, 9, 11, 13, 15), lams = c(.01, .02), k
   list(probabilities = prob, clusters = apply(prob, 1, which.max), vals = vals)
   
 }
+
+
+### Subroutine, not intended to be called directly.
+
+oQ <- function(Q, q = ncol(Q)){
+  cs <- colSums(Q)
+  sim <- (t(Q)%*%Q)
+  diag(sim) <- Inf
+  ord <- numeric(q)
+  ord[1] <- which.max(cs)
+  ds <- sim[ord[1],]
+  ds[ord[1]] <- Inf
+  for(k in 2:q){
+    ord[k] <- which.min(ds/cs^2)
+    ds <- ds*(ds > sim[ord[k],]) + sim[ord[k],]*(ds <= sim[ord[k],])
+  }
+  Q[,ord]
+}
+
