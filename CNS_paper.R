@@ -3,8 +3,8 @@ if(system.file(package = "Matrix") == "") install.packages("Matrix")
 library(FNN)
 library(Matrix)
 
-### Function CNS implements the Custering by Nonparametric
-### Smoothing algorithm in Hofmeyr, D.P. (2025), Arxiv:2503.09134
+### Function CNS implements the Custering by Non-parametric
+### Smoothing algorithm in Hofmeyr, D.P. (2025) currently on Arxiv
 ## Arguments:
 ## X = data matrix with observations row-wise
 ## kmax = maximum number of clusters
@@ -19,16 +19,24 @@ library(Matrix)
 ## $cluster = cluster allocations
 ## $vals = array storing the values of the model selection criterion for all settings considered
 
-### All default values for settings are as they were used in the paper
+### All default values for settings are as they were used in the paper (version 2 on ArXiv)
 
 
-CNS <- function(X, kmax = 30, nn = c(5, 7, 9, 11, 13, 15), lams = c(.01, .02), k0 = 300){
+CNS <- function(X, kmax = 30, nn = floor(log(nrow(X)))*1:4, lams = 1:5/sqrt(nrow(X)), k0 = 300, distance = 'Euclidean'){
   d <- ncol(X)
   n <- nrow(X)
   
-  ### Find neighbours up to largest number over which to fit models
-  nns0 <- get.knn(X, max(nn))
+  if(distance=='cosine'){
+    X <- X - matrix(colMeans(X), n, d, byrow = TRUE)
+    X <- X/sqrt(rowSums(X^2))
+  }
+  
+  
+  nns0 <- get.knn(X, max(nn)-1)
+  nns0$nn.index <- cbind(1:n, nns0$nn.index)
+  nns0$nn.dist <- cbind(0, nns0$nn.dist)
   nns <- nns0$nn.index
+  
   
   ### vals stores the values of the model selection criterion used to select a final solution
   vals <- array(0, dim = c(kmax, length(nn), length(lams)))
@@ -62,13 +70,11 @@ CNS <- function(X, kmax = 30, nn = c(5, 7, 9, 11, 13, 15), lams = c(.01, .02), k
       I <- sparseMatrix(1:n,1:n) - (1-lam)*L/nn[ni]
       
       Qs[,1:min(kmax, length(uix)),ni,li] <- matrix(oQ(lam*solve(I, pix, sparse = TRUE), min(kmax, length(uix))))
-
-      ### kopt is the value for K which maximises the normalisation term for model selection
-      kopt <- sqrt((n-(n-lam)*nn[ni]/(nn[ni]+1-lam))/(1-lam))
+      
       
       ### store the model selection criterion values for all number of clusters up to kmax for these settings
       vals[,ni,li] <- c(0, sapply(2:kmax, function(k){
-        ref <- (n-lam)*lam*(nn[ni]/kopt+1-lam)/n/(nn[ni]-(1-lam)*(nn[ni]-lam))+kopt/n*lam - (n-kopt+kopt^2)/n/kopt
+        ref <- (1-lam)*(1/nn[ni] + 1/n - 2/sqrt(n*nn[ni]))
         (mean(apply(1/k+Qs[,1:k,ni,li]-rowSums(Qs[,1:k,ni,li])/k, 1, max)) - (n-k+k^2)/n/k)/ref
       }))
       
@@ -89,8 +95,6 @@ CNS <- function(X, kmax = 30, nn = c(5, 7, 9, 11, 13, 15), lams = c(.01, .02), k
   
 }
 
-
-### Subroutine, not intended to be called directly.
 
 oQ <- function(Q, q = ncol(Q)){
   cs <- colSums(Q)
