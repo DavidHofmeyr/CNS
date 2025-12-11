@@ -1,7 +1,10 @@
 if(system.file(package = "FNN") == "") install.packages("FNN")
 if(system.file(package = "Matrix") == "") install.packages("Matrix")
+if(system.file(package = "matrixStats") == "") install.packages("matrixStats")
 library(FNN)
 library(Matrix)
+library(matrixStats)
+
 
 ### Function CNS implements the Custering by Non-parametric
 ### Smoothing algorithm, initially described in Hofmeyr, D.P. (2025) currently on Arxiv,
@@ -163,5 +166,6 @@ appr_solv <- function(W, F0, lams, iter = 100){
   for(j in 1:length(lams)) out[,,j] <- out[,,j] + as.matrix(add)*(lams[j]^(it+1))/(1-lams[j])
   out
 }
+
 
 
